@@ -2,7 +2,6 @@
 
 import pickle
 import socket
-import sys
 import threading
 
 stopping = False
