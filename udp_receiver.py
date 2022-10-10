@@ -5,7 +5,7 @@ import socket
 import sys
 import threading
 
-stopping = True
+stopping = False
 server = "127.0.0.1"
 port = 20777
 packets = []
