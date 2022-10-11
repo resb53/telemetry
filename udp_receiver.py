@@ -1,5 +1,6 @@
 #!usr/bin/env python3
 
+import gzip
 import pickle
 import socket
 import threading
@@ -29,7 +30,7 @@ def receive(sock):
         global stopping
         if stopping:
             break
-    with open("telemetry.pickle", 'wb') as f:
+    with gzip.open("telemetry.gz", 'wb') as f:
         pickle.dump(packets, f)
     print("Telemetry saved.")
 

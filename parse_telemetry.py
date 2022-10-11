@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import datetime
+import gzip
 import pickle
 import struct
 import sys
@@ -58,7 +58,7 @@ class Packet():
 
 def main():
     # Load telemetry
-    with open("telemetry.pickle", "rb") as f:
+    with gzip.open("telemetry.gz", "rb") as f:
         telem = pickle.load(f)
 
     # Strip FINISH packet
