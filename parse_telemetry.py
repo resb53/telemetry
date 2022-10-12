@@ -41,9 +41,8 @@ eventSize = {
 }
 
 
-class Packet():
-    def __init__(self, header, body):
-        self.size = len(body) + 24
+class Header():
+    def __init__(self, header):
         self.format = header[0]
         self.game_version = f"{str(header[1])}.{str(header[2])}"
         self.version = header[3]
@@ -53,12 +52,11 @@ class Packet():
         self.frame = header[7]
         self.p1car = header[8]
         self.p2car = header[9]
-        self.body = body
 
 
 def main():
     # Load telemetry
-    with gzip.open("telemetry.gz", "rb") as f:
+    with gzip.open("full_lap.gz", "rb") as f:
         telem = pickle.load(f)
 
     # Strip FINISH packet
@@ -66,31 +64,30 @@ def main():
 
     # Iterate through packets and parse depending on type
     for rawPacket in telem:
-        packet = parsePacket(rawPacket)
+        (header, body) = parsePacket(rawPacket)
 
-        if packet.size != packetSize[packet.type]:
-            print(f"Size error! Packet type {packet.type} has size {packet.size}", file=sys.stderr)
+        if (len(body) + 24) != packetSize[header.type]:
+            print(f"Size error! Packet type {header.type} has size {len(body) + 24}", file=sys.stderr)
 
-        if packet.type in processData:
-            processData[packet.type](packet)
+        if header.type in processData:
+            processData[header.type](header, body)
 
 
 def parsePacket(raw):
     header = raw[0:24]
     body = raw[24:]
 
-    header = struct.unpack("=H4BQfI2B", header)
-    packet = Packet(header, body)
+    header = Header(struct.unpack("=H4BQfI2B", header))
 
-    return packet
+    return (header, body)
 
 
-def processEvent(packet):
-    eventType = packet.body[0:4]
+def processEvent(header, body):
+    eventType = body[0:4]
     eventType = struct.unpack("4s", eventType)[0].decode("utf-8")
-    body = packet.body[4:]
+    body = body[4:]
 
-    print(f"{packet.timestamp}: {eventType}: {body}")
+    print(f"{header.timestamp}: {eventType}: {body}")
 
 
 processData = {
