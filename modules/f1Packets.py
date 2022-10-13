@@ -30,13 +30,21 @@ class Header():
         self.p2car = header[9]
 
 
-class EventPacket():
+class Packet():
     def __init__(self, header, body):
         # Prepare packet values
         prepare(self, header, body)
-        # Process body
+        self.body = body
+
+    def __str__(self):
+        return(f"{self.timestamp}: {self.body}")
+
+
+class EventPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
         self.event = struct.unpack("4s", body[0:4])[0].decode("utf-8")
         self.body = body[4:]
 
     def __str__(self):
-        return(f"{self.timestamp}: {self.event}: {self.body}")
+        return(f"{self.timestamp}: {self.event}, {self.body}")
