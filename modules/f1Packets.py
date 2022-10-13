@@ -8,15 +8,6 @@ eventSize = {
 packetSize = [1464, 632, 972, 40, 1257, 1102, 1347, 1058, 1015, 1191, 948, 1155]
 
 
-def prepare(self, header, body):
-    # Import Header values into packet
-    for attr, value in header.__dict__.items():
-        self.__dict__[attr] = value
-    # Check Size
-    if (len(body) + 24) != packetSize[self.type]:
-        raise ValueError(f"Packet type {header.type} has size {len(body) + 24}. Should be {packetSize[self.type]}")
-
-
 class Header():
     def __init__(self, header):
         self.format = header[0]
@@ -32,8 +23,12 @@ class Header():
 
 class Packet():
     def __init__(self, header, body):
-        # Prepare packet values
-        prepare(self, header, body)
+        # Import Header values into packet
+        for attr, value in header.__dict__.items():
+            self.__dict__[attr] = value
+        # Check Size
+        if (len(body) + 24) != packetSize[self.type]:
+            raise ValueError(f"Packet type {header.type} has size {len(body) + 24}. Should be {packetSize[self.type]}")
         self.body = body
 
     def __str__(self):
