@@ -35,6 +35,21 @@ class Packet():
         return(f"{self.timestamp}: {self.body}")
 
 
+class MotionPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+
+
+class SessionPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+
+
+class LapDataPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+
+
 class EventPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
@@ -43,3 +58,47 @@ class EventPacket(Packet):
 
     def __str__(self):
         return(f"{self.timestamp}: {self.event}, {self.body}")
+
+
+class ParticipantPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+
+
+class SetupPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+
+
+class TelemetryPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+
+
+class StatusPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+        self.cars = []
+        for i in range(22):
+            self.cars.append(struct.unpack("=5B3f2H2BH3BbfB3fB", body[0:47]))
+            body = body[47:]
+
+
+class ClassificationPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+
+
+class LobbyPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+
+
+class DamagePacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)
+
+
+class HistoryPacket(Packet):
+    def __init__(self, header, body):
+        super().__init__(header, body)

@@ -33,7 +33,8 @@ def parsePacket(raw):
 
 
 processData = {
-    3: f1Packets.EventPacket
+    # 3: f1Packets.EventPacket,
+    7: f1Packets.StatusPacket
 }
 
 if __name__ == "__main__":
