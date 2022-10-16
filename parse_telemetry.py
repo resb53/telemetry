@@ -34,7 +34,8 @@ def parsePacket(raw):
 
 processData = {
     # 3: f1Packets.EventPacket,
-    7: f1Packets.StatusPacket
+    4: f1Packets.ParticipantPacket
+    # 7: f1Packets.StatusPacket
 }
 
 if __name__ == "__main__":

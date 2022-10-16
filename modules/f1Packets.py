@@ -63,6 +63,12 @@ class EventPacket(Packet):
 class ParticipantPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
+        self.count = struct.unpack("B", body[0])
+        body = body[1:]
+        self.cars = []
+        for _ in range(22):
+            self.cars.append(struct.unpack("=7B48sB", body[0:56]))
+            body = body[56:]
 
 
 class SetupPacket(Packet):
@@ -79,7 +85,7 @@ class StatusPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
         self.cars = []
-        for i in range(22):
+        for _ in range(22):
             self.cars.append(struct.unpack("=5B3f2H2BH3BbfB3fB", body[0:47]))
             body = body[47:]
 
