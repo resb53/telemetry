@@ -20,9 +20,9 @@ def main():
     for rawPacket in telem:
         (header, body) = parsePacket(rawPacket)
 
-        if header.type == 1:
+        if header.type == 3:
             packet = processData[header.type](header, body)
-            print(packet.localTime)
+            print(packet.event)
             packets.append(packet)
 
 

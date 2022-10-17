@@ -21,7 +21,7 @@ class Header():
         self.p2car = header[9]
 
 
-class Body():
+class Data():
     def __init__(self, body):
         self.values = body
         self.index = 0
@@ -50,10 +50,26 @@ class Packet():
         # Check Size
         if (len(body) + 24) != packetSize[self.type]:
             raise ValueError(f"Packet type {header.type} has size {len(body) + 24}. Should be {packetSize[self.type]}")
-        self.body = Body(body)
+        self.body = Data(body)
 
     def __str__(self):
         return(f"{self.timestamp}: {self.body.values}")
+
+
+class CarMotion():
+    def __init__(self, data):
+        (
+            self.wpx, self.wpy, self.wpz,
+            self.wvx, self.wvy, self.wvz
+        ) = data[0:6]
+        (
+            self.fwdx, self.fwdy, self.fwdz,
+            self.rgtx, self.rgty, self.rgtz
+        ) = [x / 32767.0 for x in data[6:12]]
+        (
+            self.glat, self.glon, self.gver,
+            self.yaw, self.pitch, self.roll
+        ) = data[12:18]
 
 
 class MotionPacket(Packet):
@@ -61,11 +77,22 @@ class MotionPacket(Packet):
         super().__init__(header, body)
         self.cars = []
         for _ in range(22):
-            car = list(struct.unpack("=6f6h6f", self.body.read(60)))
-            for i, x in enumerate(car[6:12]):
-                car[i+6] = x / 32767.0
-            self.cars.append(tuple(car))
+            self.cars.append(CarMotion(struct.unpack("=6f6h6f", self.body.read(60))))
         self.motion = struct.unpack("=15f", self.body.read(60))
+
+
+class MarshalZone():
+    def __init__(self, data):
+        self.start = data[0]
+        self.flag = data[1]
+
+
+class Forecast():
+    def __init__(self, data):
+        (
+            self.session, self.offset, self.weather, self.trackTemp,
+            self.trackTempDelta, self.airTemp, self.airTempDelta, self.rainChance
+        ) = data
 
 
 class SessionPacket(Packet):
@@ -77,13 +104,13 @@ class SessionPacket(Packet):
             self.seshTimeLeft, self.seshDuration, self.pitSpeed, self.paused,
             self.spectating, self.spectIndex, self.sli, self.marshalZoneCount
         ) = struct.unpack("=B2bBHBbB2H6B", self.body.read(19))
-        zones = []
+        self.zones = []
         for _ in range(21):
-            zones.append(struct.unpack("=fb", self.body.read(5)))
+            self.zones.append(MarshalZone(struct.unpack("=fb", self.body.read(5))))
         (self.safetyCar, self.network, self.forecastSampleCount) = struct.unpack("=3B", self.body.read(3))
-        forecast = []
+        self.forecast = []
         for _ in range(56):
-            forecast.append(struct.unpack("=3B4bB", self.body.read(8)))
+            self.forecast.append(Forecast(struct.unpack("=3B4bB", self.body.read(8))))
         (
             self.forecastAccuracy, self.aiDifficulty, self.seasonLinkId, self.weekendLinkId,
             self.sessionLinkId, self.pitIdeal, self.pitLatest, self.pitRejoin
@@ -95,10 +122,25 @@ class SessionPacket(Packet):
         self.localTime = f"{localTime // 60 :02d}:{localTime % 60 :02d}"
 
 
+class CarLap():
+    def __init__(self, data):
+        (
+            self.lastLap, self.curLap, self.sector1, self.sector2,
+            self.lapDist, self.totalDist, self.safetyDelta, self.position,
+            self.lap, self.pit, self.pits, self.sector,
+            self.lapValid, self.penalties, self.warnings, self.driveThrus,
+            self.stopGos, self.gridPos, self.status, self.result,
+            self.pitLane, self.pitLaneTime, self.pitStopTime, self.pitServe 
+        ) = data
+
+
 class LapDataPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
         self.cars = []
+        for _ in range(22):
+            self.cars.append(CarLap(struct.unpack("=2L2H3f14B2HB", self.body.read(43))))
+        (self.ttPB, self.ttRiv) = struct.unpack("=2B", self.body.read(2))
 
 
 class EventPacket(Packet):
