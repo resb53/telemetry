@@ -5,6 +5,8 @@ import gzip
 import pickle
 import struct
 
+packets = []
+
 
 def main():
     # Load telemetry
@@ -18,9 +20,10 @@ def main():
     for rawPacket in telem:
         (header, body) = parsePacket(rawPacket)
 
-        if header.type in processData:
+        if header.type == 1:
             packet = processData[header.type](header, body)
-            print(packet)
+            print(packet.localTime)
+            packets.append(packet)
 
 
 def parsePacket(raw):
@@ -33,9 +36,18 @@ def parsePacket(raw):
 
 
 processData = {
-    # 3: f1Packets.EventPacket,
-    4: f1Packets.ParticipantPacket
-    # 7: f1Packets.StatusPacket
+    0: f1Packets.MotionPacket,
+    1: f1Packets.SessionPacket,
+    2: f1Packets.LapDataPacket,
+    3: f1Packets.EventPacket,
+    4: f1Packets.ParticipantPacket,
+    5: f1Packets.SetupPacket,
+    6: f1Packets.TelemetryPacket,
+    7: f1Packets.StatusPacket,
+    8: f1Packets.ClassificationPacket,
+    9: f1Packets.LobbyPacket,
+    10: f1Packets.DamagePacket,
+    11: f1Packets.HistoryPacket
 }
 
 if __name__ == "__main__":

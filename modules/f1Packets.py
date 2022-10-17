@@ -38,11 +38,47 @@ class Packet():
 class MotionPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
+        self.cars = []
+        for _ in range(22):
+            car = list(struct.unpack("=6f6h6f", body[0:60]))
+            for i, x in enumerate(car[6:12]):
+                car[i+6] = x / 32767.0
+            self.cars.append(tuple(car))
+            body = body[60:]
+        self.motion = struct.unpack("=15f", body[0:60])
 
 
 class SessionPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
+        (
+            self.weather, self.trackTemp, self.airTemp, self.totalLaps,
+            self.trackLength, self.seshType, self.trackId, self.formula,
+            self.seshTimeLeft, self.seshDuration, self.pitSpeed, self.paused,
+            self.spectating, self.spectIndex, self.sli, self.marshalZoneCount
+        ) = struct.unpack("=B2bBHBbB2H6B", body[0:19])
+        body = body[19:]
+        zones = []
+        for _ in range(21):
+            zones.append(struct.unpack("=fb", body[0:5]))
+            body = body[5:]
+        (self.safetyCar, self.network, self.forecastSampleCount) = struct.unpack("=3B", body[0:3])
+        body = body[3:]
+        forecast = []
+        for _ in range(56):
+            forecast.append(struct.unpack("=3B4bB", body[0:8]))
+            body = body[8:]
+        (
+            self.forecastAccuracy, self.aiDifficulty, self.seasonLinkId, self.weekendLinkId,
+            self.sessionLinkId, self.pitIdeal, self.pitLatest, self.pitRejoin
+        ) = struct.unpack("=2B3L3B", body[0:17])
+        body = body[17:]
+        self.assists = struct.unpack("=9B", body[0:9])
+        body = body[9:]
+        (
+            self.mode, self.rules, localTime, self.seshLength
+        ) = struct.unpack("=2BLB", body[0:7])
+        self.localTime = f"{localTime // 60}:{localTime % 60 :02d}"
 
 
 class LapDataPacket(Packet):
@@ -63,11 +99,13 @@ class EventPacket(Packet):
 class ParticipantPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
-        self.count = struct.unpack("B", body[0])
+        self.count = struct.unpack("B", body[0:1])[0]
         body = body[1:]
         self.cars = []
         for _ in range(22):
-            self.cars.append(struct.unpack("=7B48sB", body[0:56]))
+            participant = list(struct.unpack("=7B48sB", body[0:56]))
+            participant[7] = participant[7].strip(b'\x00').decode("utf-8")
+            self.cars.append(tuple(participant))
             body = body[56:]
 
 
