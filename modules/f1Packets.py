@@ -98,6 +98,7 @@ class SessionPacket(Packet):
 class LapDataPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
+        self.cars = []
 
 
 class EventPacket(Packet):
