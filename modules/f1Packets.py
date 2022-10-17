@@ -78,7 +78,7 @@ class SessionPacket(Packet):
         (
             self.mode, self.rules, localTime, self.seshLength
         ) = struct.unpack("=2BLB", body[0:7])
-        self.localTime = f"{localTime // 60}:{localTime % 60 :02d}"
+        self.localTime = f"{localTime // 60 :02d}:{localTime % 60 :02d}"
 
 
 class LapDataPacket(Packet):
