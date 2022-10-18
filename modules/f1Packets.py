@@ -152,25 +152,49 @@ class EventPacket(Packet):
         return(f"{self.timestamp}: {self.event}, {self.body}")
 
 
+class Participant():
+    def __init__(self, data):
+        (
+            self.ai, self.driverID, self.networkID,
+            self.teamID, self.myTeam, self.raceNum,
+            self.nationality, self.name, self.udp
+        ) = data
+        self.name = self.name.strip(b'\x00').decode("utf-8")
+
+
 class ParticipantPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
         self.count = struct.unpack("B", self.body.read(1))[0]
-        self.cars = []
+        self.drivers = []
         for _ in range(22):
-            participant = list(struct.unpack("=7B48sB", self.body.read(56)))
-            participant[7] = participant[7].strip(b'\x00').decode("utf-8")
-            self.cars.append(tuple(participant))
+            self.drivers.append(Participant(struct.unpack("=7B48sB", self.body.read(56))))
+
+
+class Setup():
+    def __init__(self, data):
+        (
+            self.frontWing, self.rearWing, self.onThrottle, self.offThrottle,
+            self.frontCamber, self.rearCamber, self.frontToe, self.rearToe,
+            self.frontSus, self.rearSus, self.frontRollbar, self.rearRollbar,
+            self.frontHeight, self.rearHeight, self.brakePressure, self.brakeBias,
+            self.rearLeft, self.rearRight, self.frontLeft, self.frontRight,
+            self.ballast, self.fuelLoad
+        ) = data
 
 
 class SetupPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
+        self.cars = []
+        for _ in range(22):
+            self.cars.append(Setup(struct.unpack("=4B4f8B4fBf", self.body.read(49))))
 
 
 class TelemetryPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
+        self.cars = []
 
 
 class StatusPacket(Packet):
