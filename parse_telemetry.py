@@ -20,9 +20,9 @@ def main():
     for rawPacket in telem:
         (header, body) = parsePacket(rawPacket)
 
-        if header.type == 5:
+        if header.type == 6:
             packet = processData[header.type](header, body)
-            print([x.frontWing for x in packet.cars])
+            print([x.drs for x in packet.cars])
             packets.append(packet)
 
 

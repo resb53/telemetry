@@ -171,7 +171,7 @@ class ParticipantPacket(Packet):
             self.drivers.append(Participant(struct.unpack("=7B48sB", self.body.read(56))))
 
 
-class Setup():
+class CarSetup():
     def __init__(self, data):
         (
             self.frontWing, self.rearWing, self.onThrottle, self.offThrottle,
@@ -188,13 +188,26 @@ class SetupPacket(Packet):
         super().__init__(header, body)
         self.cars = []
         for _ in range(22):
-            self.cars.append(Setup(struct.unpack("=4B4f8B4fBf", self.body.read(49))))
+            self.cars.append(CarSetup(struct.unpack("=4B4f8B4fBf", self.body.read(49))))
+
+
+class CarTelemetry():
+    def __init__(self, data):
+        (
+            self.speed, self.throttle, self.steer, self.brake,
+            self.clutch, self.gear, self.rpm, self.drs,
+            self.revLightsPercent, self.revLightsBitValue, self.brakesTemp, self.tyresSurfaceTemp,
+            self.tyresInnerTemp, self.engineTemp, self.tyresPressure, self.surfaceType
+        ) = data
 
 
 class TelemetryPacket(Packet):
     def __init__(self, header, body):
         super().__init__(header, body)
         self.cars = []
+        for _ in range(22):
+            self.cars.append(CarTelemetry(struct.unpack("=H3fBbH2B2H2BHfB", self.body.read(33))))
+        (self.mfdP1, self.mfdP2, self.suggestedGear) = struct.unpack("2Bb", self.body.read(3))
 
 
 class StatusPacket(Packet):
