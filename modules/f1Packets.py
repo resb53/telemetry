@@ -7,6 +7,12 @@ eventSize = {
 
 packetSize = [1464, 632, 972, 40, 1257, 1102, 1347, 1058, 1015, 1191, 948, 1155]
 
+# Tyre Indices
+RL = 0
+RR = 1
+FL = 2
+FR = 3
+
 
 class Header():
     def __init__(self, header):
@@ -173,12 +179,13 @@ class ParticipantPacket(Packet):
 
 class CarSetup():
     def __init__(self, data):
+        self.tyrePressure = [None] * 4
         (
             self.frontWing, self.rearWing, self.onThrottle, self.offThrottle,
             self.frontCamber, self.rearCamber, self.frontToe, self.rearToe,
             self.frontSus, self.rearSus, self.frontRollbar, self.rearRollbar,
             self.frontHeight, self.rearHeight, self.brakePressure, self.brakeBias,
-            self.rearLeft, self.rearRight, self.frontLeft, self.frontRight,
+            self.tyrePressure[RL], self.tyrePressure[RR], self.tyrePressure[FL], self.tyrePressure[FR],
             self.ballast, self.fuelLoad
         ) = data
 
@@ -193,11 +200,21 @@ class SetupPacket(Packet):
 
 class CarTelemetry():
     def __init__(self, data):
+        self.brakeTemp = [None] * 4
+        self.tyreSurface = [None] * 4
+        self.tyreInner = [None] * 4
+        self.tyrePressure = [None] * 4
+        self.surfaceType = [None] * 4
         (
             self.speed, self.throttle, self.steer, self.brake,
             self.clutch, self.gear, self.rpm, self.drs,
-            self.revLightsPercent, self.revLightsBitValue, self.brakesTemp, self.tyresSurfaceTemp,
-            self.tyresInnerTemp, self.engineTemp, self.tyresPressure, self.surfaceType
+            self.revLightsPercent, self.revLightsBitValue,
+            self.brakeTemp[RL], self.brakeTemp[RR], self.brakeTemp[FL], self.brakeTemp[FR],
+            self.tyreSurface[RL], self.tyreSurface[RR], self.tyreSurface[FL], self.tyreSurface[FR],
+            self.tyreInner[RL], self.tyreInner[RR], self.tyreInner[FL], self.tyreInner[FR],
+            self.engineTemp,
+            self.tyrePressure[RL], self.tyrePressure[RR], self.tyrePressure[FL], self.tyrePressure[FR],
+            self.surfaceType[RL], self.surfaceType[RR], self.surfaceType[FL], self.surfaceType[FR],
         ) = data
 
 
@@ -206,7 +223,7 @@ class TelemetryPacket(Packet):
         super().__init__(header, body)
         self.cars = []
         for _ in range(22):
-            self.cars.append(CarTelemetry(struct.unpack("=H3fBbH2B2H2BHfB", self.body.read(33))))
+            self.cars.append(CarTelemetry(struct.unpack("=H3fBbH2B5H8BH4f4B", self.body.read(60))))
         (self.mfdP1, self.mfdP2, self.suggestedGear) = struct.unpack("2Bb", self.body.read(3))
 
 

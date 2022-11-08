@@ -10,7 +10,7 @@ packets = []
 
 def main():
     # Load telemetry
-    with gzip.open("telemetry/mp_telemetry.gz", "rb") as f:
+    with gzip.open("telemetry.gz", "rb") as f:
         telem = pickle.load(f)
 
     # Strip FINISH packet
@@ -22,7 +22,7 @@ def main():
 
         if header.type == 6:
             packet = processData[header.type](header, body)
-            print([x.drs for x in packet.cars])
+            print([x.gear for x in packet.cars])
             packets.append(packet)
 
 
